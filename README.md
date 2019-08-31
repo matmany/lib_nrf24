@@ -1,7 +1,7 @@
 lib_nrf24
 =========
 
-## Agost 2019 -This fork will be maintained(i'll try) by MatMany(Mateus Mamani), it worked on my Raspberry pi 3 plus,
+## August 2019 -This fork will be maintained(i'll try) by MatMany(Mateus Mamani), it worked on my Raspberry pi 3 plus,
 I've Made a few changes in lib_nrf24.py and added a try block in examples
 
 if you find any bug let me know!
