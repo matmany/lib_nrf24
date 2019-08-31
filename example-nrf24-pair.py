@@ -38,7 +38,7 @@ pipes = [[0xe7, 0xe7, 0xe7, 0xe7, 0xe7], [0xc2, 0xc2, 0xc2, 0xc2, 0xc2]]
 radio1 = NRF24(GPIO, GPIO.SpiDev())
 radio1.begin(9)       # SPI-CE=RF24-CSN=pin9, no RF24-CE pin
 time.sleep(1)
-radio1.setRetries(15,15)
+radio1.setRetries(15, 15)
 radio1.setPayloadSize(32)
 radio1.setChannel(0x62)
 radio1.setDataRate(NRF24.BR_2MBPS)
@@ -55,7 +55,7 @@ if not radio1.isPVariant():
     # Else print diagnostic stuff & exit.
     radio1.printDetails()
     # (or we could always just print details anyway, even on good setup, for debugging)
-    print ("NRF24L01+ not found.")
+    print("NRF24L01+ not found.")
     exit()
 
 
@@ -65,7 +65,7 @@ if not radio1.isPVariant():
 radio2 = NRF24(GPIO, GPIO.SpiDev())
 radio2.begin(10)    # SPI-CE=RF24-CSN=pin10, no RF24-CE pin
 time.sleep(1)
-radio2.setRetries(15,15)
+radio2.setRetries(15, 15)
 
 radio2.setPayloadSize(32)
 radio2.setChannel(0x62)
@@ -84,71 +84,93 @@ radio2.startListening()
 if not radio2.isPVariant():
     radio2.stopListening()
     radio2.printDetails()
-    print ("NRF24L01+ not found.")
+    print("NRF24L01+ not found.")
     exit()
 
 
 ##################################################################
 c1 = 1
+
+
 def serviceRadio1():
     # Let's deal with PTX - radio1:
 
-    print ("TX:")
+    print("TX:")
     global c1
     global radio1
-    buf = ['H', 'E', 'L', 'O',(c1 & 255)]   # something to recognise at other end
+    # something to recognise at other end
+    buf = ['H', 'E', 'L', 'O', (c1 & 255)]
     c1 += 1
     # send a packet to receiver
     radio1.write(buf)
     # RF24 handles all timeouts, retries and ACKs and ACK-payload
     # So the call to radio.write() only returns after ack and its payload have finished
-    print ("\033[31;1mPTX Sent:\033[0m"),
-    print (buf)
+    print("\033[31;1mPTX Sent:\033[0m"),
+    print(buf)
     # did a payload come back with the ACK?
     if radio1.isAckPayloadAvailable():
-        pl_buffer=[]
+        pl_buffer = []
         radio1.read(pl_buffer, radio1.getDynamicPayloadSize())
-        print ("\033[31;1mPTX Received back:\033[0m"),
-        print (pl_buffer)
+        print("\033[31;1mPTX Received back:\033[0m"),
+        print(pl_buffer)
     else:
-        print ("PTX Received: Ack only, no payload")
+        print("PTX Received: Ack only, no payload")
+
 
 ##################################################################
 c2 = 1
+
+
 def serviceRadio2():
     # Now deal separately with  PRX - radio 2
-    print ("RX?")
+    print("RX?")
     global c2
     global radio2
-    akpl_buf = [(c2& 255),1, 2, 3,4,5,6,7,8,9,0,1, 2, 3,4,5,6,7,8]  # We should see this returned to PTX
+    akpl_buf = [(c2 & 255), 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3,
+                4, 5, 6, 7, 8]  # We should see this returned to PTX
     pipe = [0]
     if not radio2.available(pipe):
         return
 
     recv_buffer = []
     radio2.read(recv_buffer, radio2.getDynamicPayloadSize())
-    print ("\033[32;1mPRX Received:\033[0m") ,
-    print (recv_buffer)
+    print("\033[32;1mPRX Received:\033[0m"),
+    print(recv_buffer)
     c2 += 1
-    if (c2&1) == 0:   # alternate times - so we can see difference beteeen ack-payload and no ack-payload
+    if (c2 & 1) == 0:   # alternate times - so we can see difference beteeen ack-payload and no ack-payload
         radio2.writeAckPayload(1, akpl_buf, len(akpl_buf))
-        print ("PRX Loaded payload reply:"),
-        print (akpl_buf)
+        print("PRX Loaded payload reply:"),
+        print(akpl_buf)
     else:
-        print ("PRX: (No return payload)")
+        print("PRX: (No return payload)")
 
 
 ##################################################################
 # We could experiment with differing payload lengths above, up to max 32 bytes each way.
 
 
-c=0
-while True:
-    c += 1
-    print ("Loop %d" % c),
-    if not (c % 3):    # only once per x loops
-        serviceRadio1()   # send something
-        time.sleep(0.01)
-    else:
-        serviceRadio2()    # has it arrived? (if so, maybe send return data)
-        time.sleep(2)   # 1 sec per loop
+c = 0
+try:
+    while True:
+        c += 1
+        print("Loop %d" % c),
+        if not (c % 3):    # only once per x loops
+            serviceRadio1()   # send something
+            time.sleep(0.01)
+        else:
+            serviceRadio2()    # has it arrived? (if so, maybe send return data)
+            time.sleep(2)   # 1 sec per loop
+    # here you put your main loop or block of code
+
+except KeyboardInterrupt:
+    # here you put any code you want to run before the program
+    # exits when you press CTRL+C
+    print("\n")  # print value of counter
+except:
+    # this catches ALL other exceptions including errors.
+    # You won't get any error messages for debugging
+    # so only use it once your code is working
+    print("Other error or exception occurred!")
+
+finally:
+    GPIO.cleanup()  # this ensures a clean exit

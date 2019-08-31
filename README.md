@@ -1,8 +1,16 @@
 lib_nrf24
 =========
 
+## Agost 2019 -This fork will be maintained(i'll try) by MatMany(Mateus Mamani), it worked on my Raspberry pi 3 plus,
+I've Made a few changes in lib_nrf24.py and added a try block in examples
+
+if you find any bug let me know!
+
+carry on!
+
+
 ## May 2018 - This is no longer being maintained by the original author.
-## Please feel free to fork, copy, adapt if you find it useable
+
 
 Python2/3 library for NRF24L01+ Transceivers
 
